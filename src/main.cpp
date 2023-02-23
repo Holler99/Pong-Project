@@ -14,6 +14,9 @@ SDL_Surface *sprite = nullptr;
 SDL_Surface *backGroundImage = nullptr;
 SDL_Surface *backBuffer = nullptr;
 
+Mix_Chunk *hitSound = nullptr;
+Mix_Music *backGroundMusic = nullptr;
+
 TTF_Font *gameFont = nullptr;
 
 float inputDirectionX = 0.0f;
@@ -54,6 +57,10 @@ int main(int argc, char* args[])
     // load font
     if (TTF_Init() == -1)
         return 2;
+    
+    //load sdl mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0)
+        return 3;
 
     // create window
     window = SDL_CreateWindow(
@@ -67,6 +74,10 @@ int main(int argc, char* args[])
     backBuffer = SDL_GetWindowSurface(window);
     
     if (LoadFiles()) {
+
+        // play sound
+        //Mix_PlayChannel(-1, hitSound, 0);
+        Mix_PlayMusic(backGroundMusic, -1);
         while(ProgramIsRunning())
         {
             // get the time at the start of the frame
@@ -84,7 +95,8 @@ int main(int argc, char* args[])
             DrawImage(sprite, backBuffer, ballRect.x, ballRect.y);
 
             // font
-            DrawText(backBuffer, "Demo", 100, 100, gameFont, 255u, 255u, 255u);
+            DrawText(backBuffer, "Score: ", 50, 50, gameFont, 255u, 255u, 255u);
+            DrawText(backBuffer, "High Score: ", 500, 50, gameFont, 255u, 255u, 255u);
 
             // end draw frame
             SDL_UpdateWindowSurface(window);
@@ -198,7 +210,7 @@ void DrawImageFrame(SDL_Surface* image, SDL_Surface* destSurface,
 bool LoadFiles()
 {
     // load images
-    backGroundImage = LoadImage("assets/graphics/background.bmp");
+    backGroundImage = LoadImage("assets/graphics/grid_background.bmp");
     sprite = LoadImage("assets/graphics/ball.bmp");
 
     if(sprite == nullptr)
@@ -211,6 +223,18 @@ bool LoadFiles()
     gameFont = TTF_OpenFont("assets/fonts/alfphabet.ttf", 30);
 
     if (gameFont == nullptr)
+        return false;
+
+    // load sounds
+    hitSound = Mix_LoadWAV("assets/sounds/JuhaniJunkala[RetroGameMusicPack]TitleScreen.wav");
+
+    if (hitSound == nullptr)
+        return false;
+
+    // load music
+    backGroundMusic = Mix_LoadMUS("assets/sounds/JuhaniJunkala[RetroGameMusicPack]TitleScreen.wav");
+
+    if (backGroundMusic == nullptr)
         return false;
 
     return true;
@@ -235,6 +259,18 @@ void FreeFiles()
     {
         TTF_CloseFont(gameFont);
         gameFont = nullptr;
+    }
+
+    if (hitSound != nullptr)
+    {
+        Mix_FreeChunk(hitSound);
+        hitSound = nullptr;
+    }
+
+    if (backGroundMusic != nullptr)
+    {
+        Mix_FreeMusic(backGroundMusic);
+        backGroundMusic = nullptr;
     }
 }
 
